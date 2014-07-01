@@ -4,62 +4,122 @@ using System.Linq;
 using System.Text;
 using DarkMultiPlayerServer;
 using DarkMultiPlayerCommon;
+using System.Reflection;
 using MessageStream;
+using System.IO;
 using ChatSharp;
+using Newtonsoft.Json;
 
 namespace DarkChat
 {
+    class Settings
+    {
+        public string Server { get; set; }
+
+        public string Nick { get; set; }
+
+        public string Ident { get; set; }
+
+        public string RealName { get; set; }
+
+        public string NickServ { get; set; }
+
+        public string[] Channels { get; set; }
+    }
+
     [DMPPlugin]
     public class DarkChat
     {
         private static string PLUGIN_VER = "0.1";
+
+        private static string PLUGIN_DIR = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DarkChat");
+        private static string CONFIG_FILE = Path.Combine(PLUGIN_DIR, "DarkChat.cfg");
+
+        private static Settings settings;
         
-        // IRC CONFIG
-        private static string SERVER = "irc.esper.net";
-        private static string NICK = "DarkChatBot";
-        private static string IDENT = "DarkChatBot";
-        private static string REALNAME = "DarkChatBot";
-        private static string CHANNEL = "DMP";
 
         private static IrcClient ircClient;
         private static IrcUser ircUser;
 
         public DarkChat()
         {
+            loadConfig();
             DarkLog.Debug(String.Format("[DarkChat] initialized version {0}", PLUGIN_VER));
-            DarkLog.Debug("[DarkChat] creating IRCUser");
-            ircUser = new IrcUser(NICK, IDENT, "", REALNAME);
-            ircClient = new IrcClient(SERVER, ircUser);
-            DarkLog.Debug("[DarkChat] connecting to " + SERVER);
-            ircClient.NetworkError += (s, e) => DarkLog.Debug("[DarkChat] Connection Error: " + e.SocketError);
-            ircClient.ConnectionComplete += (s, e) => ircClient.JoinChannel(CHANNEL);
+            ircUser = new IrcUser(settings.Nick, settings.Ident, settings.NickServ, settings.RealName);
+            ircClient = new IrcClient(settings.Server, ircUser);
+        }
+
+        public void checkDirectoryExists()
+        {
+            if (!Directory.Exists(PLUGIN_DIR))
+                Directory.CreateDirectory(PLUGIN_DIR);
+        }
+
+        public void saveConfig()
+        {
+            checkDirectoryExists();
+
+            using (StreamWriter sw = new StreamWriter(CONFIG_FILE))
+            {
+                Settings defaultSettings = new Settings
+                {
+                    Server = "irc.esper.net",
+                    Nick = "DarkChat",
+                    Ident = "DarkChat",
+                    RealName = "DarkChat v" + PLUGIN_VER,
+                    NickServ = "",
+                    Channels = new String[] {"dmp"}
+                };
+
+                string configJSON = JsonConvert.SerializeObject(defaultSettings, Formatting.Indented);
+
+                sw.WriteLine(configJSON);
+            }
+        }
+
+        public void loadConfig()
+        {
+            if (File.Exists(CONFIG_FILE))
+            {
+                settings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(CONFIG_FILE));
+            }
+            else
+            {
+                saveConfig();
+            }
         }
 
         public void Update()
         {
             
-            ircClient.ChannelMessageRecieved += (s, e) =>
+        }
+
+        public void OnServerStart()
+        {
+            ircClient.ConnectAsync();
+            ircClient.ConnectionComplete += (s, e) =>
             {
-                ClientHandler.SendChatMessageToChannel(CHANNEL, String.Format("[{0}] <{1}> {2}", DateTime.Now.ToString("HH:mm:ss"), e.PrivateMessage.User.Nick, e.PrivateMessage.Message));
+                DarkLog.Debug("[DarkChat] connected.");
+                foreach (string channel in settings.Channels)
+                {
+                    DarkLog.Debug("[DarkChat] joining #" + channel);
+                    ircClient.JoinChannel("#" + channel);
+                }
             };
+            ircClient.ChannelMessageRecieved += (s, e) =>
+                {
+                    string[] parts = e.PrivateMessage.Source.Split('#');
+                    ClientHandler.SendChatMessageToChannel(parts[1], String.Format("[{0}] <{1}> {2}", DateTime.Now.ToString("HH:mm:ss"), e.PrivateMessage.User.Nick, e.PrivateMessage.Message));
+                };
+            ircClient.NetworkError += (s, e) => DarkLog.Debug("[DarkChat] Connection Error: " + e.SocketError);
         }
 
-        public void OnClientConnect(ClientObject client)
+        public void OnServerStop()
         {
-
+            ircClient.Quit();
         }
 
-        public void OnClientAuthenticated(ClientObject client)
-        {
-
-        }
-
-        public void OnClientDisconnect(ClientObject client)
-        {
-
-        }
-
-        public void OnMessageReceived(ClientHandler client, ClientMessage message)
+        public void OnMessageReceived(ClientObject client, ClientMessage message)
         {
             if (message.type == ClientMessageType.CHAT_MESSAGE)
             {
@@ -71,16 +131,10 @@ namespace DarkChat
                     {
                         string channel = mr.Read<string>();
                         string umessage = mr.Read<string>();
-                        if (channel == CHANNEL)
-                            ircClient.Channels[0].SendMessage(String.Format("{0} -> {1}", fromPlayer, umessage));
+                        ircClient.Channels["#" + channel].SendMessage(String.Format("{0} -> {1}", fromPlayer, umessage));
                     }
                 }
             }
-        }
-
-        public void OnRawMessageReceived(ClientHandler client, byte[] message)
-        {
-
         }
     }
 }

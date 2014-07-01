@@ -34,21 +34,28 @@
   <ItemGroup>
     <Reference Include="ChatSharp">
       <HintPath>..\..\ChatSharp-master\ChatSharp\bin\Release\ChatSharp.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="DarkMultiPlayer-Common">
       <HintPath>..\..\..\..\GitHub\DarkMultiPlayer\Server\bin\Debug\DarkMultiPlayer-Common.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="DMPServer">
       <HintPath>..\..\..\..\GitHub\DarkMultiPlayer\Server\bin\Debug\DMPServer.exe</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="MessageWriter">
       <HintPath>..\..\..\..\GitHub\DarkMultiPlayer\Server\bin\Debug\MessageWriter.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\..\References\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
