@@ -79,14 +79,12 @@ namespace DarkChat
 
         public void loadConfig()
         {
-            if (File.Exists(CONFIG_FILE))
-            {
-                settings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(CONFIG_FILE));
-            }
-            else
+            if (!File.Exists(CONFIG_FILE))
             {
                 saveConfig();
             }
+            settings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(CONFIG_FILE));
+            
         }
 
         public void Update()
@@ -129,9 +127,15 @@ namespace DarkChat
                     string fromPlayer = mr.Read<string>();
                     if (messageType == ChatMessageType.CHANNEL_MESSAGE)
                     {
-                        string channel = mr.Read<string>();
+                        string channel = "#" + mr.Read<string>().ToLower();
                         string umessage = mr.Read<string>();
-                        ircClient.Channels["#" + channel].SendMessage(String.Format("{0} -> {1}", fromPlayer, umessage));
+                        foreach (var ircChannel in ircClient.Channels)
+                        {
+                            if (ircChannel.Name.ToLower() == channel)
+                            {
+                                ircChannel.SendMessage(String.Format("{0} -> {1}", fromPlayer, umessage));
+                            }
+                        }
                     }
                 }
             }
