@@ -27,37 +27,103 @@ namespace DarkChat
         public string[] Channels { get; set; }
     }
 
+    class Command
+    {
+        public string command;
+        public Action<string> action;
+        public string description;
+    }
+
     [DMPPlugin]
     public class DarkChat
     {
         private static string PLUGIN_VER = "0.1";
 
-        private static string PLUGIN_DIR = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DarkChat");
+        private static string PLUGIN_DIR = Path.Combine(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins"), "DarkChat");
         private static string CONFIG_FILE = Path.Combine(PLUGIN_DIR, "DarkChat.cfg");
 
         private static Settings settings;
-        
+
+        private static List<string> listChannels = new List<string>();
+
+        private static List<Command> listCommands = new List<Command>();
 
         private static IrcClient ircClient;
         private static IrcUser ircUser;
 
         public DarkChat()
         {
+            RegisterCommands();
+
             loadConfig();
+
             DarkLog.Debug(String.Format("[DarkChat] initialized version {0}", PLUGIN_VER));
+
             ircUser = new IrcUser(settings.Nick, settings.Ident, settings.NickServ, settings.RealName);
             ircClient = new IrcClient(settings.Server, ircUser);
         }
 
-        public void checkDirectoryExists()
+        public void RegisterCommands()
+        {
+            listCommands.Clear();
+            listCommands.Add(new Command { command = "darkbot", action = DarkChat.DCCommand, description = "DarkChat commands." });
+
+            foreach (Command command in listCommands)
+            {
+                CommandHandler.RegisterCommand(command.command, command.action, command.description);
+            }
+        }
+
+        public static void checkDirectoryExists()
         {
             if (!Directory.Exists(PLUGIN_DIR))
                 Directory.CreateDirectory(PLUGIN_DIR);
         }
 
-        public void saveConfig()
+        public static void DCCommand(string commandArgs)
+        {
+            string config = "";
+            string func = "";
+            string args = "";
+
+            config = commandArgs;
+            if (commandArgs.Contains(" "))
+            {
+                config = commandArgs.Substring(0, commandArgs.IndexOf(" "));
+                if (commandArgs.Substring(config.Length).Contains(" "))
+                    func = commandArgs.Substring(config.Length + 1, commandArgs.IndexOf(" "));
+                if (commandArgs.Substring(func.Length).Contains(" "))
+                    args = commandArgs.Substring(func.Length + 1);
+            }
+
+            DarkLog.Debug("Config: " + config + " | func: " + func + " | args: " + args);
+
+            switch (config)
+            {
+                default:
+                    DarkLog.Normal("Unrecognized config. Usage: /darkchat [config] [set] or /darkchat [config]");
+                    break;
+                case "channels":
+                    if (func == "add")
+                    {
+                        listChannels.Add(args);
+                        saveConfig();
+                    }
+                    break;
+                case "server":
+                    if (func == "set")
+                        settings.Server = args;
+                    else
+                        DarkLog.Normal("server: " + settings.Server);
+                    break;
+            }
+        }
+
+        public static void saveConfig()
         {
             checkDirectoryExists();
+
+            listChannels.Add("dmp");
 
             using (StreamWriter sw = new StreamWriter(CONFIG_FILE))
             {
@@ -68,7 +134,7 @@ namespace DarkChat
                     Ident = "DarkChat",
                     RealName = "DarkChat v" + PLUGIN_VER,
                     NickServ = "",
-                    Channels = new String[] {"dmp"}
+                    Channels = listChannels.ToArray()
                 };
 
                 string configJSON = JsonConvert.SerializeObject(defaultSettings, Formatting.Indented);
@@ -77,23 +143,26 @@ namespace DarkChat
             }
         }
 
-        public void loadConfig()
+        public static void loadConfig()
         {
+            listChannels.Clear();
             if (!File.Exists(CONFIG_FILE))
             {
                 saveConfig();
             }
             settings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(CONFIG_FILE));
+            listChannels.AddRange(settings.Channels);
             
         }
 
         public void Update()
         {
-            
+            CommandHandler.RegisterCommand("darkbot", DCCommand, "DarkBot commands");
         }
 
         public void OnServerStart()
         {
+
             ircClient.ConnectAsync();
             ircClient.ConnectionComplete += (s, e) =>
             {
