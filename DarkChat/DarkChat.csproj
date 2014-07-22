@@ -33,23 +33,23 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ChatSharp">
-      <HintPath>..\..\ChatSharp-master\ChatSharp\bin\Release\ChatSharp.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\..\Visual Studio 2010\Projects\ChatSharp-master\ChatSharp\bin\Release\ChatSharp.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="DarkMultiPlayer-Common">
-      <HintPath>..\..\..\..\GitHub\DarkMultiPlayer\Server\bin\Debug\DarkMultiPlayer-Common.dll</HintPath>
+      <HintPath>..\..\DarkMultiPlayer\Server\bin\Debug\DarkMultiPlayer-Common.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="DMPServer">
-      <HintPath>..\..\..\..\GitHub\DarkMultiPlayer\Server\bin\Debug\DMPServer.exe</HintPath>
+      <HintPath>..\..\DarkMultiPlayer\Server\bin\Debug\DMPServer.exe</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="MessageWriter">
-      <HintPath>..\..\..\..\GitHub\DarkMultiPlayer\Server\bin\Debug\MessageWriter.dll</HintPath>
+      <HintPath>..\..\DarkMultiPlayer\Server\bin\Debug\MessageWriter.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\References\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\..\Visual Studio 2010\References\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

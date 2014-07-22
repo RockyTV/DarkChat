@@ -37,7 +37,7 @@ namespace DarkChat
     [DMPPlugin]
     public class DarkChat
     {
-        private static string PLUGIN_VER = "0.1";
+        private static string PLUGIN_VER = "0.2a";
 
         private static string PLUGIN_DIR = Path.Combine(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins"), "DarkChat");
         private static string CONFIG_FILE = Path.Combine(PLUGIN_DIR, "DarkChat.cfg");
@@ -57,10 +57,8 @@ namespace DarkChat
 
             loadConfig();
 
-            DarkLog.Debug(String.Format("[DarkChat] initialized version {0}", PLUGIN_VER));
+            DarkLog.Debug(String.Format("[DarkChat] initialized, version {0}", PLUGIN_VER));
 
-            ircUser = new IrcUser(settings.Nick, settings.Ident, settings.NickServ, settings.RealName);
-            ircClient = new IrcClient(settings.Server, ircUser);
         }
 
         public void RegisterCommands()
@@ -84,37 +82,149 @@ namespace DarkChat
         {
             string config = "";
             string func = "";
-            string args = "";
+            string param = "";
 
-            config = commandArgs;
-            if (commandArgs.Contains(" "))
+            string[] parts = commandArgs.Split(' ');
+
+            config = parts[0];
+            if (parts.Length > 1)
             {
-                config = commandArgs.Substring(0, commandArgs.IndexOf(" "));
-                if (commandArgs.Substring(config.Length).Contains(" "))
-                    func = commandArgs.Substring(config.Length + 1, commandArgs.IndexOf(" "));
-                if (commandArgs.Substring(func.Length).Contains(" "))
-                    args = commandArgs.Substring(func.Length + 1);
+                func = parts[1];
+                if (parts.Length < 4)
+                    param = parts[2];
             }
-
-            DarkLog.Debug("Config: " + config + " | func: " + func + " | args: " + args);
 
             switch (config)
             {
-                default:
-                    DarkLog.Normal("Unrecognized config. Usage: /darkchat [config] [set] or /darkchat [config]");
-                    break;
                 case "channels":
-                    if (func == "add")
+                    if (param == "")
                     {
-                        listChannels.Add(args);
-                        saveConfig();
+
                     }
+
+                    if (func == "")
+                    {
+                        string channels = String.Join(", ", listChannels);
+                        DarkLog.Normal("[DarkChat] Channels: " + channels);
+                    }
+                    else if (func == "add")
+                    {
+                        listChannels.Add(param);
+                        saveConfig();
+                        DarkLog.Normal("[DarkChat] Added '#" + param + "' to the channel list.");
+                    }
+                    else if (func == "del")
+                    {
+                        if (listChannels.Contains(param))
+                        {
+                            listChannels.Remove(param);
+                            saveConfig();
+                            DarkLog.Normal("[DarkChat] Removed '#" + param + "' from the channel list.");
+                        }
+                        else
+                            DarkLog.Normal("[DarkChat] Error! There isn't a channel with that name on my config!");
+                    }
+                    else
+                        DarkLog.Normal("[DarkChat] Invalid function. Type /darkbot help for more info.");
                     break;
                 case "server":
-                    if (func == "set")
-                        settings.Server = args;
+                    if (param == "")
+                    {
+
+                    }
+
+                    if (func == "")
+                    {
+                        DarkLog.Normal("[DarkChat] Server: " + settings.Server);
+                    }
+                    else if (func == "set")
+                    {
+                        settings.Server = param;
+                        saveConfig();
+                        DarkLog.Normal("[DarkChat] Successfully set '" + param + "' as server.");
+                    }
                     else
-                        DarkLog.Normal("server: " + settings.Server);
+                        DarkLog.Normal("[DarkChat] Invalid function. Type /darkbot help for more info.");
+                    break;
+                case "nick":
+                    if (param == "")
+                    {
+
+                    }
+
+                    if (func == "")
+                    {
+                        DarkLog.Normal("[DarkChat] Nick: " + settings.Nick);
+                    }
+                    else if (func == "set")
+                    {
+                        settings.Nick = param;
+                        saveConfig();
+                        DarkLog.Normal("[DarkChat] Successfully set '" + param + "' as nickname.");
+                    }
+                    else
+                        DarkLog.Normal("[DarkChat] Invalid function. Type /darkbot help for more info.");
+                    break;
+                case "ident":
+                    if (param == "")
+                    {
+
+                    }
+
+                    if (func == "")
+                    {
+                        DarkLog.Normal("[DarkChat] Ident: " + settings.Ident);
+                    }
+                    else if (func == "set")
+                    {
+                        settings.Ident = param;
+                        saveConfig();
+                        DarkLog.Normal("[DarkChat] Successfully set '" + param + "' as ident.");
+                    }
+                    else
+                        DarkLog.Normal("[DarkChat] Invalid function. Type /darkbot help for more info.");
+                    break;
+                case "realname":
+                    if (param == "")
+                    {
+
+                    }
+
+                    if (func == "")
+                    {
+                        DarkLog.Normal("[DarkChat] Realname: " + settings.RealName);
+                    }
+                    else if (func == "set")
+                    {
+                        settings.RealName = param;
+                        saveConfig();
+                        DarkLog.Normal("[DarkChat] Successfully set '" + param + "' as realname.");
+                    }
+                    else
+                        DarkLog.Normal("[DarkChat] Invalid function. Type /darkbot help for more info.");
+                    break;
+                case "nickserv":
+                    if (param == "")
+                    {
+
+                    }
+
+                    if (func == "")
+                    {
+                        DarkLog.Normal("[DarkChat] NickServ password: " + settings.NickServ);
+                    }
+                    else if (func == "set")
+                    {
+                        settings.NickServ = param;
+                        saveConfig();
+                        DarkLog.Normal("[DarkChat] Successfully set '" + param + "' as NickServ password.");
+                    }
+                    else
+                        DarkLog.Normal("[DarkChat] Invalid function. Type /darkbot help for more info.");
+                    break;
+                default:
+                case "help":
+                    DarkLog.Normal("[DarkChat] Available commands: channels [add|del] <param>, server [set] <param>, nick [set] <param>, ident [set] <param>, realname [set] <param>, nickserv [set] <param>, help");
                     break;
             }
         }
@@ -122,8 +232,6 @@ namespace DarkChat
         public static void saveConfig()
         {
             checkDirectoryExists();
-
-            listChannels.Add("dmp");
 
             using (StreamWriter sw = new StreamWriter(CONFIG_FILE))
             {
@@ -155,35 +263,52 @@ namespace DarkChat
             
         }
 
-        public void Update()
+        public void setupIRC()
         {
-            CommandHandler.RegisterCommand("darkbot", DCCommand, "DarkBot commands");
-        }
-
-        public void OnServerStart()
-        {
+            if (ircClient == null)
+            {
+                ircUser = new IrcUser(settings.Nick, settings.Ident, settings.NickServ, settings.RealName);
+                ircClient = new IrcClient(settings.Server, ircUser);
+            }
 
             ircClient.ConnectAsync();
             ircClient.ConnectionComplete += (s, e) =>
             {
-                DarkLog.Debug("[DarkChat] connected.");
+                DarkLog.Debug("[DarkChat] Connected to " + settings.Server);
                 foreach (string channel in settings.Channels)
                 {
-                    DarkLog.Debug("[DarkChat] joining #" + channel);
+                    DarkLog.Debug("[DarkChat] Joining #" + channel);
                     ircClient.JoinChannel("#" + channel);
                 }
             };
             ircClient.ChannelMessageRecieved += (s, e) =>
-                {
-                    string[] parts = e.PrivateMessage.Source.Split('#');
-                    ClientHandler.SendChatMessageToChannel(parts[1], String.Format("[{0}] <{1}> {2}", DateTime.Now.ToString("HH:mm:ss"), e.PrivateMessage.User.Nick, e.PrivateMessage.Message));
-                };
+            {
+                string[] parts = e.PrivateMessage.Source.Split('#');
+                ClientHandler.SendChatMessageToChannel(parts[1], String.Format("[{0}] <{1}> {2}", DateTime.Now.ToString("HH:mm:ss"), e.PrivateMessage.User.Nick, e.PrivateMessage.Message));
+            };
             ircClient.NetworkError += (s, e) => DarkLog.Debug("[DarkChat] Connection Error: " + e.SocketError);
+        }
+
+        public void quitIRC()
+        {
+            if (ircClient != null)
+                ircClient.Quit();
+        }
+
+        public void OnServerRestart()
+        {
+            quitIRC();
+            setupIRC();
+        }
+
+        public void OnServerStart()
+        {
+            setupIRC();
         }
 
         public void OnServerStop()
         {
-            ircClient.Quit();
+            quitIRC();
         }
 
         public void OnMessageReceived(ClientObject client, ClientMessage message)
