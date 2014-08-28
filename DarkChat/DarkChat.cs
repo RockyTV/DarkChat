@@ -34,10 +34,9 @@ namespace DarkChat
         public string description;
     }
 
-    [DMPPlugin]
-    public class DarkChat
+    public class DarkChat : DMPPlugin
     {
-        private static string PLUGIN_VER = "0.2a";
+        private static string PLUGIN_VER = "0.3";
 
         private static string PLUGIN_DIR = Path.Combine(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins"), "DarkChat");
         private static string CONFIG_FILE = Path.Combine(PLUGIN_DIR, "DarkChat.cfg");
@@ -111,7 +110,7 @@ namespace DarkChat
                     {
                         listChannels.Add(param);
                         saveConfig();
-                        DarkLog.Normal("[DarkChat] Added '#" + param + "' to the channel list.");
+                        DarkLog.Normal("[DarkChat] Added '" + param + "' to the channel list.");
                     }
                     else if (func == "del")
                     {
@@ -119,7 +118,7 @@ namespace DarkChat
                         {
                             listChannels.Remove(param);
                             saveConfig();
-                            DarkLog.Normal("[DarkChat] Removed '#" + param + "' from the channel list.");
+                            DarkLog.Normal("[DarkChat] Removed '" + param + "' from the channel list.");
                         }
                         else
                             DarkLog.Normal("[DarkChat] Error! There isn't a channel with that name on my config!");
@@ -238,8 +237,8 @@ namespace DarkChat
                 Settings defaultSettings = new Settings
                 {
                     Server = "irc.esper.net",
-                    Nick = "DarkChat",
-                    Ident = "DarkChat",
+                    Nick = "DarkBot",
+                    Ident = "DarkBot",
                     RealName = "DarkChat v" + PLUGIN_VER,
                     NickServ = "",
                     Channels = listChannels.ToArray()
@@ -277,8 +276,8 @@ namespace DarkChat
                 DarkLog.Debug("[DarkChat] Connected to " + settings.Server);
                 foreach (string channel in settings.Channels)
                 {
-                    DarkLog.Debug("[DarkChat] Joining #" + channel);
-                    ircClient.JoinChannel("#" + channel);
+                    DarkLog.Debug("[DarkChat] Joining " + channel);
+                    ircClient.JoinChannel(channel);
                 }
             };
             ircClient.ChannelMessageRecieved += (s, e) =>
@@ -295,23 +294,17 @@ namespace DarkChat
                 ircClient.Quit();
         }
 
-        public void OnServerRestart()
-        {
-            quitIRC();
-            setupIRC();
-        }
-
-        public void OnServerStart()
+        public override void OnServerStart()
         {
             setupIRC();
         }
 
-        public void OnServerStop()
+        public override void OnServerStop()
         {
             quitIRC();
         }
 
-        public void OnMessageReceived(ClientObject client, ClientMessage message)
+        public override void OnMessageReceived(ClientObject client, ClientMessage message)
         {
             if (message.type == ClientMessageType.CHAT_MESSAGE)
             {
