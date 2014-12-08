@@ -5,7 +5,7 @@ using System.Text;
 using DarkMultiPlayerServer;
 using DarkMultiPlayerCommon;
 using System.Reflection;
-using MessageStream;
+using MessageStream2;
 using System.IO;
 using ChatSharp;
 using Newtonsoft.Json;
@@ -36,7 +36,7 @@ namespace DarkChat
 
     public class DarkChat : DMPPlugin
     {
-        private static string PLUGIN_VER = "0.3";
+        private static string PLUGIN_VER = "0.4";
 
         private static string PLUGIN_DIR = Path.Combine(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins"), "DarkChat");
         private static string CONFIG_FILE = Path.Combine(PLUGIN_DIR, "DarkChat.cfg");
@@ -47,8 +47,8 @@ namespace DarkChat
 
         private static List<Command> listCommands = new List<Command>();
 
-        private static IrcClient ircClient;
-        private static IrcUser ircUser;
+        private static IrcClient m_Client;
+        private static IrcUser m_User;
 
         public DarkChat()
         {
@@ -262,53 +262,42 @@ namespace DarkChat
             
         }
 
-        public void setupIRC()
+        public override void OnServerStart()
         {
-            if (ircClient == null)
-            {
-                ircUser = new IrcUser(settings.Nick, settings.Ident, settings.NickServ, settings.RealName);
-                ircClient = new IrcClient(settings.Server, ircUser);
-            }
+            m_User = new IrcUser(settings.Nick, settings.Ident, settings.NickServ, settings.RealName);
+            m_Client = new IrcClient(settings.Server, m_User, false);
 
-            ircClient.ConnectAsync();
-            ircClient.ConnectionComplete += (s, e) =>
+            m_Client.ConnectAsync();
+            m_Client.ConnectionComplete += (s, e) =>
             {
                 DarkLog.Debug("[DarkChat] Connected to " + settings.Server);
                 foreach (string channel in settings.Channels)
                 {
                     DarkLog.Debug("[DarkChat] Joining " + channel);
-                    ircClient.JoinChannel(channel);
+                    m_Client.JoinChannel(channel);
                 }
             };
-            ircClient.ChannelMessageRecieved += (s, e) =>
+            m_Client.ChannelMessageRecieved += (s, e) =>
             {
-                string[] parts = e.PrivateMessage.Source.Split('#');
-                ClientHandler.SendChatMessageToChannel(parts[1], String.Format("[{0}] <{1}> {2}", DateTime.Now.ToString("HH:mm:ss"), e.PrivateMessage.User.Nick, e.PrivateMessage.Message));
+                string channel = e.PrivateMessage.Source.Substring(1);
+                DarkMultiPlayerServer.Messages.Chat.SendChatMessageToChannel(channel, String.Format("[{0}] <{1}> {2}", DateTime.Now.ToString("HH:mm:ss"), e.PrivateMessage.User.Nick, e.PrivateMessage.Message));
             };
-            ircClient.NetworkError += (s, e) => DarkLog.Debug("[DarkChat] Connection Error: " + e.SocketError);
-        }
-
-        public void quitIRC()
-        {
-            if (ircClient != null)
-                ircClient.Quit();
-        }
-
-        public override void OnServerStart()
-        {
-            setupIRC();
+            m_Client.NetworkError += (s, e) => DarkLog.Debug("[DarkChat] Connection Error: " + e.SocketError);
         }
 
         public override void OnServerStop()
         {
-            quitIRC();
+            if (m_Client != null)
+            {
+                m_Client.Quit();
+            }
         }
 
         public override void OnMessageReceived(ClientObject client, ClientMessage message)
         {
             if (message.type == ClientMessageType.CHAT_MESSAGE)
             {
-                using (MessageReader mr = new MessageReader(message.data, false))
+                using (MessageReader mr = new MessageReader(message.data))
                 {
                     ChatMessageType messageType = (ChatMessageType)mr.Read<int>();
                     string fromPlayer = mr.Read<string>();
@@ -316,7 +305,7 @@ namespace DarkChat
                     {
                         string channel = "#" + mr.Read<string>().ToLower();
                         string umessage = mr.Read<string>();
-                        foreach (var ircChannel in ircClient.Channels)
+                        foreach (var ircChannel in m_Client.Channels)
                         {
                             if (ircChannel.Name.ToLower() == channel)
                             {

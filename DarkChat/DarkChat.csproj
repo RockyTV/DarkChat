@@ -33,8 +33,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ChatSharp">
-      <HintPath>bin\Release\ChatSharp.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\..\ChatSharp\ChatSharp\bin\Debug\ChatSharp.dll</HintPath>
     </Reference>
     <Reference Include="DarkMultiPlayer-Common">
       <HintPath>..\..\DarkMultiPlayer\Server\bin\Debug\DarkMultiPlayer-Common.dll</HintPath>
@@ -44,12 +43,13 @@
       <HintPath>..\..\DarkMultiPlayer\Server\bin\Debug\DMPServer.exe</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="MessageWriter">
-      <HintPath>..\..\DarkMultiPlayer\Server\bin\Debug\MessageWriter.dll</HintPath>
+    <Reference Include="MessageWriter2">
+      <HintPath>..\..\DarkMultiPlayer\Server\bin\Debug\MessageWriter2.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>bin\Release\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\..\Visual Studio 2013\References\JSON\Net40\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
