@@ -13,6 +13,8 @@ DarkChat depends on Newtonsoft's JSON.NET and SirCmpwn's ChatSharp. Don't worry 
 
 Installing DarkChat should be *easy peasy lemon squeezy* - meaning it should be super easy to install. You just drag all the files from the ZIP Archive and drop it inside the **Plugins** folder of your DarkMultiPlayer server.
 
+* [Download DarkChat](https://github.com/RockyTV/DarkChat/releases)
+
 
 
 ## Running
