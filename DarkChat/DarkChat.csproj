@@ -12,7 +12,8 @@
     <AssemblyName>DarkChat</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -33,22 +34,22 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ChatSharp">
-      <HintPath>..\..\ChatSharp\ChatSharp\bin\Debug\ChatSharp.dll</HintPath>
+      <HintPath>..\ChatSharp.dll</HintPath>
     </Reference>
     <Reference Include="DarkMultiPlayer-Common">
-      <HintPath>..\..\DarkMultiPlayer\Server\bin\Debug\DarkMultiPlayer-Common.dll</HintPath>
+      <HintPath>..\DarkMultiPlayer-Common.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="DMPServer">
-      <HintPath>..\..\DarkMultiPlayer\Server\bin\Debug\DMPServer.exe</HintPath>
+      <HintPath>..\DMPServer.exe</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="MessageWriter2">
-      <HintPath>..\..\DarkMultiPlayer\Server\bin\Debug\MessageWriter2.dll</HintPath>
+      <HintPath>..\MessageWriter2.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\Visual Studio 2013\References\JSON\Net40\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\Newtonsoft.Json.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
